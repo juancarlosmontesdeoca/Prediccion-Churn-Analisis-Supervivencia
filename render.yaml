@@ -4,6 +4,9 @@ services:
     env: python
     envVars:
       - key: PYTHON_VERSION
-        value: 3.12.3
+        value: 3.11.8
     buildCommand: pip install -r requirements.txt
     startCommand: streamlit run app.py --server.port $PORT --server.address 0.0.0.0
+
+    
+
