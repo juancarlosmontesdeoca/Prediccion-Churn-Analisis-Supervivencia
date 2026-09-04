@@ -1,54 +1,47 @@
 # Survival-Churn-Analysis
 
-## ¿Por qué elegimos este modelo sobre otros como Regresión Logística, Random Forest, Gradient Boosting o Redes Neuronales?
+![Demostración de la App](salida.gif)
 
-#1. Por el manejo de la censura de datos, el cual nos ayuda a no sesgar los resultados como lo harían las Redes Neuronales.
+## ¿Por qué utilizar Análisis de Supervivencia para Churn?
 
-#2. Porque predice no solo si un cliente abandonará el servicio, sino cuándo lo hará, al contrario de una Regresión Logística.
+A diferencia de los enfoques tradicionales de clasificación binaria (como Regresión Logística o Random Forest), este modelo implementa **Análisis de Supervivencia** por las siguientes ventajas competitivas:
 
-#3. Nos ayuda a entender cómo cambia el riesgo de abandono a lo largo del tiempo, sin clasificar de manera binaria (sí/no o 0/1); como lo haría un Random Forest.
+* **Manejo de Censura de Datos:** Permite incluir en el análisis a clientes activos que aún no han cancelado el servicio, evitando los sesgos que generarían arquitecturas como Redes Neuronales.
+* **Predicción Temporal Dinámica:** No se limita a predecir *si* un cliente abandonará, sino *cuándo* ocurrirá el evento, superando la naturaleza estática de la Regresión Logística.
+* **Evolución del Riesgo:** Facilita la comprensión de cómo cambia la probabilidad de abandono a lo largo del tiempo en lugar de segmentar con salidas rígidas de 0 o 1.
+* **Cálculo Preciso de Customer Lifetime Value (CLV):** Define de forma exacta el tiempo de vida esperado del cliente, una métrica que algoritmos de Boosting no logran delimitar con precisión nativa.
 
-#4. Para calcular la vida del cliente de forma más precisa, dato que no es bien definido utilizando Boosting.
+## Guía de Uso (CLI)
 
-
---------------------------
-
-Breve guía de uso (CLI):
-- Ejecuta el análisis principal (sin mostrar ni guardar figuras):
-
-```powershell
-python .\Survival-Churn-app\models.py
+Ejecutar el análisis principal (modo silencioso):
+```bash
+python Survival-Churn-app/models.py
 ```
 
-- Guardar figuras en la carpeta por defecto `plots/`:
-
-```powershell
-python .\Survival-Churn-app\models.py --save-plots
+Generar y guardar gráficos en el directorio por defecto (`plots/`):
+```bash
+python Survival-Churn-app/models.py --save-plots
 ```
 
-- Mostrar figuras interactivamente:
-
-```powershell
-python .\Survival-Churn-app\models.py --show-plots
+Ejecutar visualización interactiva de gráficos:
+```bash
+python Survival-Churn-app/models.py --show-plots
 ```
 
-- Guardar en una carpeta personalizada:
-
-```powershell
-python .\Survival-Churn-app\models.py --save-plots --outdir results/figuras
+Guardar resultados en un directorio personalizado:
+```bash
+python Survival-Churn-app/models.py --save-plots --outdir results/figuras
 ```
 
-Notas:
-- Por defecto las figuras se guardan en `plots/` si usas `--save-plots`.
-- Si quieres ejecutar el código desde otra carpeta: el script busca el CSV con ruta relativa al propio archivo (`Telco_customer_churn.csv`).
-- Para un uso interactivo más cómodo, ejecuta el archivo en una terminal dentro de la carpeta del proyecto o usa `--show-plots`.
+> **Nota:** El script localiza el dataset (`Telco_customer_churn.csv`) mediante rutas relativas al archivo de ejecución.
 
---------------------------
+## Despliegue en Render (Streamlit)
 
-Despliegue en Render (Streamlit):
-- Build Command: `pip install -r requirements.txt`
-- Start Command:
-	`streamlit run app.py --server.port $PORT --server.address 0.0.0.0`
+El proyecto está configurado para producción en **Render** mediante el archivo `render.yaml` o con la siguiente configuración manual:
+
+* **Build Command:** `pip install -r requirements.txt`
+* **Start Command:** `streamlit run app.py --server.port $PORT --server.address 0.0.0.0`
+
 
 Notas:
 - Render exige escuchar en `0.0.0.0` y en el puerto indicado por `PORT` (por defecto 10000).
