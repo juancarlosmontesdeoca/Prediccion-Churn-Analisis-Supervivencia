@@ -1198,7 +1198,7 @@ elif view_choice == "Log‑Rank":
 st.markdown(
     "<div style='margin-top: 8rem; padding: 0.8rem 1rem; text-align: center; "
     "border-top: 1px solid #ddd; color: #ffffff; font-size: 1rem; font-weight: 600;'>"
-    "✨ Creado por Juan Carlos Monte de Oca, David Ordoñez y Máximo Bandoni ✨"
+    "✨ Creado por Juan Carlos Monte de Oca✨"
     "</div>",
     unsafe_allow_html=True
 )
