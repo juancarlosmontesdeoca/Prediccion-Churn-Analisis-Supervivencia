@@ -548,46 +548,93 @@ def render_cox_predictions_section(df, selected_vars=None):
     st.pyplot(fig)
     plt.close(fig)
 
-    # Gráfico polar (perfil malo)
+   
+     # Gráfico polar (perfil malo con diseño de espiral compacto para vista única)
     st.markdown("#### 🔄 Vista Circular del Riesgo (Reloj Visual)")
-    st.caption("**Visualización cíclica** del riesgo: cada mes ocupa una posición en el \"reloj\". La distancia desde el centro = riesgo. Detecta patrones estacionales o cíclicos en abandonos. Para este perfil, los meses iniciales (1-3) están más alejados, indicando riesgo máximo al inicio.")
-    month_names = [
-        "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-        "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
-    ]
-    slider_col, pct_col = st.columns([3, 1])
-    with slider_col:
-        selected_month = st.slider("🕒 Línea de tiempo (mes)", min_value=1, max_value=len(probs), value=1, step=1)
-    with pct_col:
-        sel_idx = selected_month - 1
-        pct = probs[sel_idx] * 100 if len(probs) > 0 else 0
-        st.metric("Riesgo próximo mes", f"{pct:.2f}%")
-        st.caption("Probabilidad condicional de churn")
-    months = np.arange(1, len(probs)+1)
-    angles = np.linspace(0, 2*np.pi, len(probs), endpoint=False)
-    fig = plt.figure(figsize=(4, 4), facecolor='black')
-    ax = plt.subplot(111, polar=True, facecolor='black')
-    ax.plot(angles, probs, marker='o', linestyle='-', color='cyan')
-    ax.fill(angles, probs, alpha=0.3, color='cyan')
+    st.caption("**Visualización interactiva**: Mueve el control deslizante para observar la aguja y el nivel de riesgo simultáneamente.")
 
-    # Aguja según mes seleccionado
-    sel_angle = angles[sel_idx]
-    sel_radius = probs[sel_idx]
-    ax.plot([sel_angle, sel_angle], [0, sel_radius], color='yellow', linewidth=2)
-    ax.scatter([sel_angle], [sel_radius], color='yellow', s=80, edgecolor='white', linewidth=1.2, zorder=5)
-    if len(probs) <= 12:
-        ax.set_xticks(angles)
-        ax.set_xticklabels([month_names[(m - 1) % 12] for m in months], color='white', fontsize=8)
-    else:
-        tick_idx = np.arange(0, len(probs), 6)
-        ax.set_xticks(angles[tick_idx])
-        ax.set_xticklabels([str(months[i]) for i in tick_idx], color='white', fontsize=8)
-    ax.set_title("Reloj del Churn (Probabilidad Condicional)", va='bottom', color='white')
-    ax.tick_params(colors='white')
-    ax.spines['polar'].set_color('white')
-    ax.grid(color='white', alpha=0.3)
-    st.pyplot(fig)
-    plt.close(fig)
+    try:
+        # 1) Definir el rango de evaluación (meses 2 a 71) desde el hito t1 = 1
+        t1_clock = 1
+        t_values_clock = np.arange(t1_clock + 1, 72)  # meses 2 a 71
+        probs_clock = [prob_conditional_interval(cph_td, profile_malo, t1_clock, t2) for t2 in t_values_clock]
+
+        # 2) Diseño compacto lado a lado: Slider a la izquierda, Métrica a la derecha (Corregido con 2 columnas)
+              
+        slider_col, pct_col = st.columns(2)
+        with slider_col:
+            selected_month_clock = st.slider("🕒 Mover aguja del reloj (Mes)", min_value=2, max_value=71, value=2, step=1)
+        with pct_col:
+            sel_idx_clock = int(selected_month_clock - 2)
+            pct_clock = probs_clock[sel_idx_clock] * 100 if len(probs_clock) > sel_idx_clock else 0.0
+            
+            # Cambiamos st.metric por st.markdown con CSS personalizado para achicar el texto
+            st.markdown(
+                f"""
+                <div style="padding-top: 5px;">
+                    <span style="font-size: 14px; color: #808495; font-weight: 500;">Riesgo acumulado</span><br>
+                    <span style="font-size: 24px; font-weight: bold; color: white;">{pct_clock:.2f}%</span>
+                </div>
+                """, 
+                unsafe_allow_html=True
+            )
+
+
+        # 3) Definir los colores según las reglas del gráfico
+        colors_clock = []
+        for i, p in enumerate(probs_clock):
+            if t_values_clock[i] in [2,3]:                
+                colors_clock.append("white")
+            elif p < 0.1:
+                colors_clock.append("white")
+            elif p < 0.3:
+                colors_clock.append("green")
+            elif p < 0.5:
+                colors_clock.append("yellow")
+            else:
+                colors_clock.append("red")
+
+        # 4) Configurar coordenadas polares (Tamaño ultra compacto 3.5 x 3.5)
+        angles_clock = np.linspace(0, 2 * np.pi, len(t_values_clock), endpoint=False)
+
+        # Ajuste de tamaño estratégico para eliminar el scroll vertical
+        fig = plt.figure(figsize=(4.2, 4.2), facecolor='white')
+        ax = plt.subplot(111, polar=True, facecolor='white')
+
+        # Dibujar las barras
+        bars = ax.bar(angles_clock, probs_clock, width=0.4, color=colors_clock, edgecolor="black")
+
+        # Configurar etiquetas periféricas compactas
+        ax.set_xticks(angles_clock)
+        ax.set_xticklabels([str(t) for t in t_values_clock], fontsize=5.5, color="black")
+        ax.tick_params(colors='black', labelsize=6.5, pad=2)
+        ax.grid(True, color='gray', alpha=0.3, linewidth=0.5)
+
+        # Ajustar los límites radiales de las barras
+        max_p = max(probs_clock) if len(probs_clock) > 0 else 1.0
+        ax.set_ylim(0, max_p * 1.1)
+
+        # Título más compacto para ahorrar espacio vertical
+        ax.set_title("Reloj del Churn (Probabilidad Condicional desde Mes 1)",
+                     va='bottom', pad=10, fontsize=8, color="black", fontweight='bold')
+
+        # 5) Aguja indicadora vinculada al Slider
+        angle_selected = angles_clock[sel_idx_clock]
+        ax.annotate("",
+                    xy=(angle_selected, max_p * 1.1),
+                    xytext=(0, 0),
+                    arrowprops=dict(facecolor="red", edgecolor="black", shrink=0.01,
+                                    width=1.2, headwidth=6))
+
+        # 6) Acomodo de centrado horizontal (Corregido con la estructura exacta de 3 columnas)
+        col_izq, col_centro, col_der = st.columns([1,2,1])
+        with col_centro:
+            st.pyplot(fig)
+            plt.close(fig)
+
+    except Exception as e:
+        st.error(f"No se pudo generar el Reloj Visual optimizado: {e}")
+
 
 # --- Interfaz de Usuario ---
 # CSS para reducir ancho del sidebar

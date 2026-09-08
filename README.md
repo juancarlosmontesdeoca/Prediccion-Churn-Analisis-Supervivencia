@@ -1,6 +1,7 @@
 # Survival-Churn-Analysis
 
 ![Demostración de la App](salida.gif)
+![Demostración de la App](salida_reloj.gif)
 
 ## ¿Por qué utilizar Análisis de Supervivencia para Churn?
 
